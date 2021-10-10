@@ -4,7 +4,8 @@ require_relative 'searchable_transaction.rb'
 class ChasePurchase
   # Constructor is private - only can be called by factory method
   private_class_method :new
-  def initialize(chase_cc_last_four, transaction_date, description, chase_category, amount)
+  def initialize(chase_cc_last_four, file_line_index, transaction_date, description, chase_category, amount)
+    @file_line_index = file_line_index
     @chase_cc_last_four = chase_cc_last_four
     @transaction_date = transaction_date
     @description = description
@@ -15,7 +16,7 @@ class ChasePurchase
 
   # params: row - CSV::Row
   # returns nilable ChasePurchase
-  def self.from_csv_row(row, cc_last_four)
+  def self.from_csv_row(row, file_line_index, cc_last_four)
     transaction_date = 
       begin 
         Date.strptime(row[0], "%m/%d/%Y")
@@ -36,6 +37,7 @@ class ChasePurchase
 
     new(
       cc_last_four,
+      file_line_index,
       transaction_date,
       description,
       chase_category,
@@ -45,6 +47,7 @@ class ChasePurchase
 
   def to_searchable_transaction(tags)
     SearchableTransaction.new(
+      @file_line_index,
       @transaction_date,
       @description,
       @chase_category,

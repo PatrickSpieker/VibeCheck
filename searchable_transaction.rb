@@ -1,6 +1,7 @@
 
 class SearchableTransaction
-  def initialize(transaction_date, description, bank_determined_category, amount, tags)
+  def initialize(file_line_index, transaction_date, description, bank_determined_category, amount, tags)
+    @file_line_index = file_line_index
     @transaction_date = transaction_date
     @description = description
     @bank_determined_category = bank_determined_category
@@ -10,12 +11,13 @@ class SearchableTransaction
 
   def txn_id
     # need better hash function; this one has too many collisions
-    "txn_" + [@transaction_date, @description, @amount].hash.abs.to_s
+    "txn_" + [@file_line_index, @transaction_date, @description, @amount].hash.abs.to_s
   end
   def to_sql_insert_into_transactions
     """
     insert into transactions values (
       '#{txn_id}', 
+      '#{@file_line_index}',
       '#{@transaction_date.strftime("%Y-%m-%d")}', 
       '#{@description}', 
       #{@amount});

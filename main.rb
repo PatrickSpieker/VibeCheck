@@ -38,6 +38,7 @@ def create_transactions_table
   """
   create table if not exists transactions (
     txn_id TEXT PRIMARY KEY,
+    file_index INTEGER,
     transaction_date TEXT,
     description TEXT,
     amount REAL
@@ -66,9 +67,10 @@ db.execute(create_tags_table)
 rows = CSV.parse(File.open(ARGV[0]))[1..]
 puts "Total rows: #{rows.length}"
 
-rows.each do |r|
+rows.each_with_index do |r, i|
+
   tags = []
-  cp = ChasePurchase.from_csv_row(r, "6226")
+  cp = ChasePurchase.from_csv_row(r, i, "6226")
   next if cp.nil?
   puts "-" * 50
   puts cp.to_pretty_string
