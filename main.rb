@@ -1,27 +1,74 @@
 require 'csv'
-
+require 'sqlite3'
+require_relative 'chase_purchase.rb'
 
 
 # take path from CLI of dir to ingest files from 
-#
 # take path of CLI of dir to cross reference files from (existing processed data)
-#
-#
-# for the 
+# output:
+# average spend per day
+# total spend for the statement
+# statement date
+# date of computation
+# questions:
+# - aggregate of:
+#   - necessary?
+#   - mild regret?
+#   - clothing?
+#   - eating out?
+#   - lime?
+#   - travel?
+# chart of purchase size and frequency (decreasing)
 
-class ChasePurchase
-  # attr_reader
-  def initialize()
-    @chase_cc_last_four = chase_cc_last_four
-    @transaction_date = transaction_date
-    @description = description
-    @chase_category = chase_category
-    @chase_type = chase_type
-    @amount = amount
+db_filename = "data/main.db"
+
+def create_transactions_table
+  """
+  create table if not exists transactions (
+    txn_id TEXT,
+    transaction_date TEXT,
+    description TEXT,
+    bank_determined_category TEXT,
+    amount REAL
+  );
+  """
+end
+
+def create_tags_table
+  """
+  create table if not exists tags (
+    txn_id TEXT,
+    tag TEXT,
+    bank_determined INTEGER,
+    FOREIGN KEY(txn_id) REFERENCES transactions(txn_id) 
+  );
+  """
+end
+
+db = SQLite3::Database.new(db_filename)
+db.execute(" PRAGMA foreign_keys = ON;")
+db.execute(create_transactions_table)
+db.execute(create_tags_table)
+
+rows = CSV.parse(File.open(ARGV[0]))[1..]
+
+rows.each do |r|
+  tags = []
+  cp = ChasePurchase.from_csv_row(r, "6226")
+  next if cp.nil?
+  puts "Was this a good purchase? (y/n)"
+  if gets.strip == 'y'
+    tags << 'good_purchase'
+  else
+    tags << 'bad_purchase'
   end
 
-  private_class_method :new
+  require 'pry'; binding.pry
+  st = cp.to_searchable_transaction(tags)
+  puts st.to_sql_insert_into_transactions
+  puts st.to_sql_insert_into_tags("memes")
+  puts "-" * 50
+end
 
+puts "Done! DB should be ready"
 
-
-end 
