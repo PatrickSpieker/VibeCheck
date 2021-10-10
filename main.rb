@@ -37,10 +37,9 @@ end
 def create_transactions_table
   """
   create table if not exists transactions (
-    txn_id TEXT,
+    txn_id TEXT PRIMARY KEY,
     transaction_date TEXT,
     description TEXT,
-    bank_determined_category TEXT,
     amount REAL
   );
   """
@@ -71,7 +70,8 @@ rows.each do |r|
   tags = []
   cp = ChasePurchase.from_csv_row(r, "6226")
   next if cp.nil?
-
+  puts "-" * 50
+  puts cp.to_pretty_string
   puts "Was this a good purchase? (y/n)"
   name = STDIN.gets.strip
   if name == 'y'
@@ -81,13 +81,18 @@ rows.each do |r|
   end
 
   st = cp.to_searchable_transaction(tags)
-  puts st.to_sql_insert_into_transactions
-  puts st.to_sql_insert_into_tags
+  db.execute(st.to_sql_insert_into_transactions)
+  db.execute(st.to_sql_insert_into_tags)
   puts "-" * 50
 end
 
 puts "Done! DB should be ready"
+puts "-" * 50
 puts db.execute """
 select * from transactions
+"""
+puts "-" * 50
+puts db.execute """
+select * from tags
 """
 

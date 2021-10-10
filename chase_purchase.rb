@@ -2,7 +2,8 @@ require 'csv'
 require_relative 'searchable_transaction.rb'
 
 class ChasePurchase
-  # attr_reader
+  # Constructor is private - only can be called by factory method
+  private_class_method :new
   def initialize(chase_cc_last_four, transaction_date, description, chase_category, amount)
     @chase_cc_last_four = chase_cc_last_four
     @transaction_date = transaction_date
@@ -42,9 +43,7 @@ class ChasePurchase
     )
   end
 
-  private_class_method :new
   def to_searchable_transaction(tags)
-
     SearchableTransaction.new(
       @transaction_date,
       @description,
@@ -52,5 +51,13 @@ class ChasePurchase
       @amount,
       tags,
     )
+  end
+
+  def to_pretty_string
+    """
+    Description: #{@description}
+    Date: #{@transaction_date}
+    Amount: #{@amount}
+    """
   end
 end 
