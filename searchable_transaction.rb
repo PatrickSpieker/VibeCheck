@@ -1,6 +1,6 @@
 
 class SearchableTransaction
-  def initialize(transcation_date, description, bank_determined_category, tags)
+  def initialize(transaction_date, description, bank_determined_category, amount, tags)
     @transaction_date = transaction_date
     @description = description
     @bank_determined_category = bank_determined_category
@@ -8,19 +8,27 @@ class SearchableTransaction
     @tags = tags.to_a
   end
 
+  def txn_id
+    "txn_" + [@transaction_date, @description, @amount].hash.abs.to_s
+  end
   def to_sql_insert_into_transactions
-    "insert into transactions values ("
-    + @transaction_date.strftime("%Y-%m-%d") + ", "
-    + @description + ", "
-    + @amount + ");"
+    """
+    insert into transactions values (
+      #{txn_id}, 
+      #{@transaction_date.strftime("%Y-%m-%d")}, 
+      #{@description}, 
+      #{@amount});
+    """.strip
   end
 
-  def to_sql_insert_into_tags(t_id)
+  def to_sql_insert_into_tags
     query = "insert into tags values "
-    tags.each do |t|
-      query += "(#{t_id}, #{t}, 0), "
+    @tags.each do |t|
+      query += "(#{txn_id}, #{t}, 0), "
     end
-    query += "(#{t_id}, #{@bank_determined_category}, 1)"
-    query + ";"
+
+    query += "(#{txn_id}, #{@bank_determined_category}, 1)"
+    query += ";"
+    query
   end
 end
